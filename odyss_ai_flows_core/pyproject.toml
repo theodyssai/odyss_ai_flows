@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools", "setuptools_scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odyss_ai_flows"
+version = "0.4.0"
+authors = [
+    { name = "Aleksander Bydlowski", email = "aleksander.bydlowski@gmail.com" }
+]
+requires-python = ">=3.11"
+
+dependencies = [
+    "jinja2",
+    "python-dotenv",
+    "networkx",
+    "pydantic",
+    "aioodbc"
+]
+
+[project.optional-dependencies]
+azure = ["odyss_ai_flows_azure"]
+
+[tool.setuptools.packages.find]
+include = ["odyss_ai_flows*"]
+

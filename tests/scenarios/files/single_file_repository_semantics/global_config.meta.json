@@ -1,0 +1,5 @@
+{
+  "tests": {
+    "scenario": "single_file_repository_semantics"
+  }
+}

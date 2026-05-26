@@ -1,0 +1,5 @@
+{
+  "config": {
+    "resolve_secrets": false
+  }
+}

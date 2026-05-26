@@ -1,0 +1,4 @@
+{
+  "direct_secret": "{{ SECRET('token') }}",
+  "ref_secret": "{{ REF('direct_secret') }}"
+}

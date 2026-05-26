@@ -1,0 +1,7 @@
+{
+  "global_value": "filesystem_global",
+  "node_value": "filesystem_node",
+  "shared": {
+    "z": 999
+  }
+}

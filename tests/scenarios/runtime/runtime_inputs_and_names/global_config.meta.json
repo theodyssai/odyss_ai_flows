@@ -1,0 +1,10 @@
+{
+  "inputs": {
+    "sensitive_keys": [
+      "secret"
+    ]
+  },
+  "config": {
+    "pre_resolve": false
+  }
+}

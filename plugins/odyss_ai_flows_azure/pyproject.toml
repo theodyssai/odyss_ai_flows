@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odyss_ai_flows_azure"
+version = "0.1.0"
+authors = [
+    { name = "Aleksander Bydlowski", email = "aleksander.bydlowski@gmail.com" }
+]
+requires-python = ">=3.11"
+
+dependencies = [
+    "openai",
+    "python-dotenv",
+    "azure-identity",
+    "azure-keyvault-secrets",
+    "azure-appconfiguration",
+    "azure-core"
+    ]
+
+[tool.setuptools.packages.find]
+include = ["odyss_ai_flows_azure*"]
+
+[project.entry-points."odyss_ai_flows.llm_components"]
+
+call_azure = "odyss_ai_flows_azure.handlers.callers.azure:AzureCaller"
+
+call_azure_streaming = "odyss_ai_flows_azure.handlers.callers.azure:AzureCallerStreaming"
+
+messages_simple = "odyss_ai_flows_azure.handlers.components.messages:SimpleMessageBuilder"
+
+messages_role = "odyss_ai_flows_azure.handlers.components.messages:RoleMessageBuilder"
+
+finish_reason_logger = "odyss_ai_flows_azure.handlers.components.finish:FinishReasonLogger"
+
+token_counter = "odyss_ai_flows_azure.handlers.components.token_counter:TokenCounter"
+
+[project.entry-points."odyss_ai_flows.llm_pipelines"]
+azure = "odyss_ai_flows_azure.handlers.pipelines:get_pipelines"

@@ -1,0 +1,27 @@
+{
+  "plain_string": "hello",
+  "plain_number": 123,
+  "jinja_math": "{{ 1 + 2 }}",
+  "jinja_string": "{{ 'hello world' }}",
+  "env_mode": "{{ ENV('MODE') }}",
+  "config_url": "{{ CONFIG('service_url') }}",
+  "async_sum": "{{ ASYNC_ADD(2, 3) }}",
+  "upper": "{{ UPPER('hello') }}",
+  "base_value": "base value",
+  "ref_simple": "{{ REF('base_value') }}",
+  "ref_a": "{{ REF('ref_b') }}",
+  "ref_b": "{{ REF('ref_c') }}",
+  "ref_c": "final value",
+  "ref_nested": "{{ REF('ref_a') }}",
+  "dict_recursive": {
+    "x": "{{ 1 + 1 }}",
+    "y": "{{ ENV('MODE') }}"
+  },
+  "list_recursive": [
+    "{{ 2 + 2 }}",
+    "{{ ENV('MODE') }}"
+  ],
+  "secret_value": "{{ SECRET('token') }}",
+  "mixed_secret": "{{ 'prefix:' + SECRET('token') }}",
+  "variant_value": "base value"
+}

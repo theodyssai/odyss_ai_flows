@@ -1,0 +1,17 @@
+{
+  "scalar_replace": "nested",
+  "dict_merge": {
+    "nested": true
+  },
+  "list_replace": [
+    "nested"
+  ],
+  "nested": {
+    "dict": {
+      "nested": 4
+    },
+    "list": [
+      "nested"
+    ]
+  }
+}

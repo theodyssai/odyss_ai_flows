@@ -1,0 +1,13 @@
+{
+    "include": [
+
+        "node_a",
+        "node_b"
+    ],
+
+    "map": {
+
+        "node_a":
+            "renamed_a"
+    }
+}

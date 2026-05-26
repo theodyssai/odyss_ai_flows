@@ -1,0 +1,7 @@
+{
+    "middleware": [
+
+        "middleware_a",
+        "middleware_b"
+    ]
+}

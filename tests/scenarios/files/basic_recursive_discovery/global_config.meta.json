@@ -1,0 +1,5 @@
+{
+  "tests": {
+    "scenario": "basic_recursive_discovery"
+  }
+}

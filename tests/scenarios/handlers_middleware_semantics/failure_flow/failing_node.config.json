@@ -1,0 +1,6 @@
+{
+    "middleware": [
+
+        "failure"
+    ]
+}

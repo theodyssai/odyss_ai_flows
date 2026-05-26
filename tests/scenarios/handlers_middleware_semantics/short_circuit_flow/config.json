@@ -1,0 +1,6 @@
+{
+    "middleware": [
+
+        "short_circuit"
+    ]
+}

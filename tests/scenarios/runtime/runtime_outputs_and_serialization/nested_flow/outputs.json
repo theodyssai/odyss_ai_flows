@@ -1,0 +1,11 @@
+{
+    "include": [
+        "visible_node"
+    ],
+
+    "map": {
+
+        "visible_node":
+            "visible_value"
+    }
+}

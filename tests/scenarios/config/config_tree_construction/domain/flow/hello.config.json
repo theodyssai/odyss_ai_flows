@@ -1,0 +1,6 @@
+{
+  "settings": {
+    "node_only": 5
+  },
+  "flow_scalar": "node_override"
+}

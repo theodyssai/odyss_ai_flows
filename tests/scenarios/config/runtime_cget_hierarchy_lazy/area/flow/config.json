@@ -1,0 +1,17 @@
+{
+  "scalar_replace": "flow",
+  "dict_merge": {
+    "flow": true
+  },
+  "list_replace": [
+    "flow"
+  ],
+  "nested": {
+    "dict": {
+      "flow": 3
+    },
+    "list": [
+      "flow"
+    ]
+  }
+}

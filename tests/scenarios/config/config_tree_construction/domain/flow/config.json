@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "flow_only": 3,
+    "shared": "flow"
+  },
+  "flow_scalar": "flow"
+}

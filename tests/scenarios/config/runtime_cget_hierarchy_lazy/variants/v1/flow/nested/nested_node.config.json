@@ -1,0 +1,17 @@
+{
+  "scalar_replace": "variant_nested_node",
+  "dict_merge": {
+    "variant": true
+  },
+  "list_replace": [
+    "variant_nested_node"
+  ],
+  "nested": {
+    "dict": {
+      "variant": 6
+    },
+    "list": [
+      "variant_nested_node"
+    ]
+  }
+}

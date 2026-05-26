@@ -1,0 +1,6 @@
+{
+  "nested_scalar": "nested_initial",
+  "nested_dict": {
+    "x": 10
+  }
+}

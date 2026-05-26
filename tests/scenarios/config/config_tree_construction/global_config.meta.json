@@ -1,0 +1,7 @@
+{
+  "global_scalar": "global",
+  "settings": {
+    "global_only": 1,
+    "shared": "global"
+  }
+}

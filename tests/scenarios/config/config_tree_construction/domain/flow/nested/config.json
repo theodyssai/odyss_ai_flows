@@ -1,0 +1,6 @@
+{
+  "settings": {
+    "nested_only": 4
+  },
+  "nested_scalar": "nested"
+}

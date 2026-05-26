@@ -1,0 +1,12 @@
+{
+  "plain_value": "plain",
+  "env_value": "{{ ENV('GLOBAL_TEST_ENV') }}",
+  "config_value": "{{ CONFIG('abc') }}",
+  "secret_value": "{{ SECRET('token') }}",
+  "merged_dict": {
+    "a": 1,
+    "b": {
+      "x": 2
+    }
+  }
+}

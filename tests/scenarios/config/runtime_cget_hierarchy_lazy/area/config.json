@@ -1,0 +1,17 @@
+{
+  "scalar_replace": "ancestor",
+  "dict_merge": {
+    "ancestor": true
+  },
+  "list_replace": [
+    "ancestor"
+  ],
+  "nested": {
+    "dict": {
+      "ancestor": 2
+    },
+    "list": [
+      "ancestor"
+    ]
+  }
+}

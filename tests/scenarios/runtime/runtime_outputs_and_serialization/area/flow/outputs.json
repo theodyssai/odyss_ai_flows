@@ -1,0 +1,19 @@
+{
+    "include": [
+        "summary_node",
+        "nested_runner",
+        "producer_a"
+    ],
+
+    "map": {
+
+        "summary_node":
+            "public_summary",
+
+        "nested_runner":
+            "renamed_nested",
+
+        "producer_a":
+            "renamed_object"
+    }
+}

@@ -1,0 +1,7 @@
+{
+  "settings": {
+    "domain_only": 2,
+    "shared": "domain"
+  },
+  "domain_scalar": "domain"
+}

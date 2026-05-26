@@ -1,0 +1,17 @@
+{
+  "scalar_replace": "global",
+  "dict_merge": {
+    "global": true
+  },
+  "list_replace": [
+    "global"
+  ],
+  "nested": {
+    "dict": {
+      "global": 1
+    },
+    "list": [
+      "global"
+    ]
+  }
+}

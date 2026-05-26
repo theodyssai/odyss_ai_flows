@@ -1,0 +1,17 @@
+{
+  "scalar_replace": "root_node",
+  "dict_merge": {
+    "root_node": true
+  },
+  "list_replace": [
+    "root_node"
+  ],
+  "nested": {
+    "dict": {
+      "root_node": 4
+    },
+    "list": [
+      "root_node"
+    ]
+  }
+}

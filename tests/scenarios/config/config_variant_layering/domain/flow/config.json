@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "base": true,
+    "shared": "base"
+  },
+  "model": "gpt4",
+  "list_value": [
+    1,
+    2
+  ]
+}
