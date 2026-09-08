@@ -1,9 +1,18 @@
 from __future__ import annotations
 
+import importlib.util
+import re
+
 from pathlib import Path
 
 from tests.tests_runtime.models import (
     ScenarioDefinition,
+)
+
+from tests.tests_runtime.requirements import (
+    Requirement,
+    coerce_requirements,
+    default_llm_requirements,
 )
 
 
@@ -20,6 +29,106 @@ SCENARIOS_ROOT = (
 )
 
 SCENARIO_ENTRY_FILE = "scenario.py"
+
+SCENARIO_REQUIREMENTS_FILE = "requirements.py"
+
+SCENARIO_REQUIREMENTS_EXPORT = "REQUIREMENTS"
+
+_REQUIRES_LLM_OVERRIDE = re.compile(
+    r"^\s*REQUIRES_LLM\s*=\s*(True|False)\b",
+    re.MULTILINE,
+)
+
+_EXECUTES_FLOW = re.compile(
+    r"\b(run_flow|ScenarioRuntimeDefinition)\b",
+)
+
+
+def _scenario_requires_llm(
+    scenario_file: Path,
+) -> bool:
+
+    try:
+        source = scenario_file.read_text(
+            encoding="utf-8"
+        )
+
+    except OSError:
+        source = ""
+
+    # Explicit override wins.
+    override = _REQUIRES_LLM_OVERRIDE.search(
+        source
+    )
+
+    if override:
+        return override.group(1) == "True"
+
+    # Auto-detect.
+    has_jinja_node = any(
+        scenario_file.parent.rglob("*.jinja2")
+    )
+
+    executes_flow = bool(
+        _EXECUTES_FLOW.search(source)
+    )
+
+    return has_jinja_node and executes_flow
+
+
+def _load_requirements_export(
+    sidecar: Path,
+    scenario_id: str,
+):
+    module_name = (
+        "scenario_requirements_"
+        + re.sub(r"\W+", "_", scenario_id)
+    )
+
+    spec = importlib.util.spec_from_file_location(
+        module_name,
+        str(sidecar),
+    )
+
+    if spec is None or spec.loader is None:
+        raise RuntimeError(
+            f"Could not load requirements module: {sidecar}"
+        )
+
+    module = importlib.util.module_from_spec(spec)
+
+    spec.loader.exec_module(module)
+
+    return getattr(
+        module,
+        SCENARIO_REQUIREMENTS_EXPORT,
+        None,
+    )
+
+
+def _scenario_requirements(
+    scenario_dir: Path,
+    scenario_file: Path,
+    scenario_id: str,
+) -> list[Requirement]:
+
+    sidecar = (
+        scenario_dir
+        / SCENARIO_REQUIREMENTS_FILE
+    )
+
+    if sidecar.is_file():
+        exported = _load_requirements_export(
+            sidecar,
+            scenario_id,
+        )
+
+        return coerce_requirements(exported)
+
+    if _scenario_requires_llm(scenario_file):
+        return default_llm_requirements()
+
+    return []
 
 
 # ---------------------------------------------------------
@@ -90,6 +199,12 @@ def discover_scenarios(
                 path=scenario_dir,
 
                 scenario_file=scenario_file,
+
+                requirements=_scenario_requirements(
+                    scenario_dir,
+                    scenario_file,
+                    scenario_id,
+                ),
             )
         )
 

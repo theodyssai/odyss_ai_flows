@@ -26,7 +26,7 @@ from tests.tests_runtime.assertions import (
 # Mock providers
 # -------------------------------------------------
 
-async def MOCK_SECRET(key: str):
+async def MOCK_VAULT(key: str):
 
     return f"secret::{key}"
 
@@ -39,9 +39,11 @@ async def run_scenario():
 
     clear_providers()
 
+    os.environ["REF_SENS_ENV"] = "env-secret"
+
     from odyss_ai_flows.core.config.providers import (
         ENV,
-        LITERAL_SECRET,
+        SECRET,
     )
 
     register_provider(
@@ -50,14 +52,14 @@ async def run_scenario():
     )
 
     register_provider(
-        "LITERAL_SECRET",
-        LITERAL_SECRET,
+        "VAULT",
+        MOCK_VAULT,
         sensitive=True,
     )
 
     register_provider(
         "SECRET",
-        MOCK_SECRET,
+        SECRET,
         sensitive=True,
     )
 
@@ -110,4 +112,38 @@ async def run_scenario():
 
     assert refed.unwrap() == (
         "secret::token"
+    )
+
+    # =============================================
+    # SECRET wrapper over an arbitrary source
+    # =============================================
+
+    wrapped = runtime[
+        "wrapped"
+    ]
+
+    assert isinstance(
+        wrapped,
+        SensitiveValue,
+    )
+
+    assert wrapped.unwrap() == (
+        "env-secret"
+    )
+
+    # =============================================
+    # REF -> wrapped secret
+    # =============================================
+
+    ref_wrapped = runtime[
+        "ref_wrapped"
+    ]
+
+    assert isinstance(
+        ref_wrapped,
+        SensitiveValue,
+    )
+
+    assert ref_wrapped.unwrap() == (
+        "env-secret"
     )

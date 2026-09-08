@@ -154,7 +154,7 @@ Example:
 ```python
 provided_tree={
     "azure_openai": {
-        "api_key": "{{ SECRET('openai-key') }}"
+        "api_key": "{{ VAULT('openai-key') }}"
     }
 }
 ```
@@ -163,10 +163,10 @@ Provider semantics continue to function normally through `cget()` resolution.
 
 This includes:
 - `ENV()`
+- `VAULT()`
 - `SECRET()`
 - `CONFIG()`
 - `REF()`
-- `LITERAL_SECRET()`
 
 and other registered providers.
 

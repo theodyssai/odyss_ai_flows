@@ -6,6 +6,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
 
+from tests.tests_runtime.requirements import (
+    Requirement,
+)
+
 
 # ---------------------------------------------------------
 # Discovery
@@ -26,6 +30,16 @@ class ScenarioDefinition:
 
     scenario_file: Path
 
+    requirements: list[Requirement] = field(
+        default_factory=list
+    )
+
+    @property
+    def requires_llm(self) -> bool:
+        """Backward-compatible: has any runtime requirement."""
+
+        return bool(self.requirements)
+
 
 # ---------------------------------------------------------
 # Execution result
@@ -44,6 +58,10 @@ class ScenarioResult:
     error: Optional[ScenarioError] = None
 
     logs_path: Optional[Path] = None
+
+    skipped: bool = False
+
+    skip_reason: Optional[str] = None
 
 
 # ---------------------------------------------------------
@@ -79,7 +97,15 @@ class SuiteResult:
         return sum(
             1
             for r in self.scenario_results
-            if not r.success
+            if not r.success and not r.skipped
+        )
+
+    @property
+    def skipped(self) -> int:
+        return sum(
+            1
+            for r in self.scenario_results
+            if r.skipped
         )
 
     @property

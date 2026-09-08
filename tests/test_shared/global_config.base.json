@@ -6,6 +6,7 @@
   "azure_openai": {
     "endpoint": "{{ ENV('AZURE_OPENAI_ENDPOINT') }}",
     "api_version": "{{ ENV('AZURE_OPENAI_API_VERSION') }}",
-    "deployment_name": "{{ ENV('AZURE_OPENAI_DEPLOYMENT') }}"
+    "deployment_name": "{{ ENV('AZURE_OPENAI_DEPLOYMENT') }}",
+    "api_key": "{{ ENV('AZURE_OPENAI_API_KEY') }}"
   }
 }

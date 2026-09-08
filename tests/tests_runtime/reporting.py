@@ -34,6 +34,7 @@ def write_suite_summary(
         "total": suite.total,
         "passed": suite.passed,
         "failed": suite.failed,
+        "skipped": suite.skipped,
 
         "scenarios": [
             {
@@ -41,6 +42,15 @@ def write_suite_summary(
                 "name": r.scenario.name,
 
                 "success": r.success,
+
+                "skipped": r.skipped,
+
+                "skip_reason": r.skip_reason,
+
+                "requirements": [
+                    req.describe()
+                    for req in r.scenario.requirements
+                ],
 
                 "duration_seconds": (
                     r.duration_seconds

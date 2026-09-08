@@ -23,6 +23,16 @@ from odyss_ai_flows.core.files.api import (
     fget,
 )
 
+from odyss_ai_flows.core.config.utils import (
+    SensitiveValue,
+)
+
+
+def unwrap(value):
+    if isinstance(value, SensitiveValue):
+        return value.unwrap()
+    return value
+
 
 class FlowResult:
     def __init__(
@@ -37,6 +47,13 @@ class FlowResult:
         ) = _extract_outputs_metadata(
             raw.results
         )
+
+    # ---------------------------------------------------------
+    # Canonical output view (single chokepoint)
+    # ---------------------------------------------------------
+
+    def _output_view(self) -> dict[str, Any]:
+        return self._final_results
 
     # ---------------------------------------------------------
     # Core properties
@@ -66,7 +83,39 @@ class FlowResult:
         self,
     ) -> dict[str, Any]:
 
-        return self._final_results
+        return dict(self._output_view())
+
+    # ---------------------------------------------------------
+    # Collection protocol
+    # ---------------------------------------------------------
+
+    def __iter__(self):
+
+        return iter(self._output_view())
+
+    def __len__(self) -> int:
+
+        return len(self._output_view())
+
+    def __contains__(self, key) -> bool:
+
+        try:
+            self[key]
+            return True
+        except (KeyError, TypeError, ValueError):
+            return False
+
+    def keys(self):
+
+        return self._output_view().keys()
+
+    def values(self):
+
+        return self._output_view().values()
+
+    def items(self):
+
+        return self._output_view().items()
 
     # ---------------------------------------------------------
     # Result access
@@ -310,6 +359,11 @@ def _extract_outputs_metadata(
         {},
     )
 
+    sensitive = spec.get(
+        "sensitive",
+        [],
+    )
+
     # ---------------------------------------------------------
     # Validation
     # ---------------------------------------------------------
@@ -332,6 +386,18 @@ def _extract_outputs_metadata(
         raise ValueError(
             "'map' must be a dict"
         )
+
+    if not isinstance(
+        sensitive,
+        list,
+    ):
+        raise ValueError(
+            "'sensitive' must be a list"
+        )
+
+    sensitive_set = set(
+        sensitive
+    )
 
     # ---------------------------------------------------------
     # Determine exported node identities
@@ -365,6 +431,9 @@ def _extract_outputs_metadata(
             continue
 
         value = all_results[key]
+
+        if key in sensitive_set:
+            value = SensitiveValue(value)
 
         output_key = mapping.get(
             key,
@@ -470,6 +539,13 @@ def _load_outputs_spec(
 def _safe_serialize(
     obj,
 ):
+
+    if isinstance(
+        obj,
+        SensitiveValue,
+    ):
+
+        return "[REDACTED]"
 
     if isinstance(
         obj,

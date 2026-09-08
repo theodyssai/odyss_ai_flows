@@ -12,8 +12,18 @@ async def runtime_node():
         "ref_secret"
     )
 
+    wrapped = await cget(
+        "wrapped_secret"
+    )
+
+    ref_wrapped = await cget(
+        "ref_wrapped_secret"
+    )
+
     return {
 
         "direct": direct,
         "refed": refed,
+        "wrapped": wrapped,
+        "ref_wrapped": ref_wrapped,
     }

@@ -13,6 +13,10 @@ from tests.scenarios.runtime.runtime_nested_flows.helpers.shared_state import (
 )
 
 
+def _normalize_path_separators(value: str) -> str:
+    return value.replace("\\", "/")
+
+
 async def run_scenario():
 
     reset_state()
@@ -38,6 +42,13 @@ async def run_scenario():
         "nested_run_names"
     ]
 
+    normalized_runs = [
+        _normalize_path_separators(
+            run_name
+        )
+        for run_name in runs
+    ]
+
     tops = orchestrator[
         "top_names"
     ]
@@ -48,18 +59,18 @@ async def run_scenario():
     )
 
     assert (
-        "nested in: area\\flow\\orchestrator_node"
-        in runs[0]
+        "nested in: area/flow/orchestrator_node"
+        in normalized_runs[0]
     )
 
     assert (
         "index: 0"
-        in runs[0]
+        in normalized_runs[0]
     )
 
     assert (
         "index: 1"
-        in runs[1]
+        in normalized_runs[1]
     )
 
     # =========================================
@@ -94,14 +105,20 @@ async def run_scenario():
         "nested_run_name"
     ]
 
+    normalized_sibling_name = (
+        _normalize_path_separators(
+            sibling_name
+        )
+    )
+
     assert (
-        "nested in: area\\flow\\sibling_node"
-        in sibling_name
+        "nested in: area/flow/sibling_node"
+        in normalized_sibling_name
     )
 
     assert (
         "index: 0"
-        in sibling_name
+        in normalized_sibling_name
     )
 
     # =========================================

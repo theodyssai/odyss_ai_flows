@@ -109,7 +109,7 @@ Before pre-resolution:
 
 ```json
 {
-  "api_key": "{{ SECRET('openai-key') }}"
+  "api_key": "{{ VAULT('openai-key') }}"
 }
 ```
 
@@ -193,7 +193,7 @@ Example config:
 
 ```json
 {
-  "api_key": "{{ SECRET('openai-key') }}"
+  "api_key": "{{ VAULT('openai-key') }}"
 }
 ```
 

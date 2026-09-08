@@ -52,7 +52,7 @@ Example:
 
     "deployment_name": "gpt-4o",
 
-    "api_key": "{{ SECRET('openai-api-key') }}",
+    "api_key": "{{ VAULT('openai-api-key') }}",
 
     "temperature": 0.7,
 
@@ -245,7 +245,7 @@ Example:
     "endpoint": "...",
     "api_version": "...",
     "deployment_name": "...",
-    "api_key": "{{ SECRET('openai-api-key') }}"
+    "api_key": "{{ VAULT('openai-api-key') }}"
   }
 }
 ```

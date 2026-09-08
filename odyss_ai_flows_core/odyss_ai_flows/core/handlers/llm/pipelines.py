@@ -20,6 +20,15 @@ from odyss_ai_flows.core.handlers.llm.registry import (
 from odyss_ai_flows.core.handlers.llm.registry import (
     _load_plugin_components,
 )
+from odyss_ai_flows.core.handlers.llm.registry import (
+    _plugin_prefix,
+)
+from odyss_ai_flows.core.handlers.llm.registry import (
+    resolve_component_key,
+)
+from odyss_ai_flows.core.utils.logger import (
+    logger,
+)
 
 
 # =========================================================
@@ -52,11 +61,23 @@ _PLUGIN_PIPELINES: Dict[
 ] = {}
 
 
+def _qualify(prefix: str, comp: str) -> str:
+    key = f"{prefix}.{comp}"
+
+    return (
+        key
+        if key in HANDLER_COMPONENT_REGISTRY
+        else comp
+    )
+
+
 def _load_plugin_pipelines():
     global _PIPELINES_LOADED
 
     if _PIPELINES_LOADED:
         return
+
+    _load_plugin_components()
 
     try:
         eps = entry_points(
@@ -70,25 +91,95 @@ def _load_plugin_pipelines():
         )
 
     for ep in eps:
-        fn = ep.load()
+        # Isolate a broken plugin: any failure loading or calling one
+        # entry point must not prevent the others from registering.
+        try:
+            fn = ep.load()
+            pipelines = fn()
 
-        pipelines = fn()
+        except Exception as exc:
+            logger.warning(
+                f"Skipping LLM pipeline "
+                f"'{ep.name}' ({ep.value}): "
+                f"{exc!r}"
+            )
+
+            continue
 
         if not isinstance(
             pipelines,
             dict,
         ):
-            raise ValueError(
-                f"Pipeline entry point "
-                f"'{ep.name}' must return "
-                f"dict[str, list[str]]"
+            logger.warning(
+                f"Skipping LLM pipeline "
+                f"'{ep.name}' ({ep.value}): "
+                f"must return dict[str, list[str]], "
+                f"got {type(pipelines).__name__}"
             )
 
-        _PLUGIN_PIPELINES.update(
-            pipelines
-        )
+            continue
+
+        prefix = _plugin_prefix(ep)
+
+        for name, comps in pipelines.items():
+            _PLUGIN_PIPELINES[f"{prefix}.{name}"] = [
+                _qualify(prefix, c)
+                for c in comps
+            ]
 
     _PIPELINES_LOADED = True
+
+
+def _match_plugin_pipeline(name: str) -> list[str]:
+    if name in _PLUGIN_PIPELINES:
+        return [name]
+
+    suffix = "." + name
+
+    return [
+        k
+        for k in _PLUGIN_PIPELINES
+        if k.endswith(suffix)
+    ]
+
+
+def _plugin_default_pipeline() -> str | None:
+    by_plugin: dict[str, list[str]] = {}
+
+    for key in _PLUGIN_PIPELINES:
+        prefix = key.partition(".")[0]
+        by_plugin.setdefault(
+            prefix,
+            [],
+        ).append(key)
+
+    candidates: list[str] = []
+
+    for keys in by_plugin.values():
+        if len(keys) == 1:
+            candidates.append(keys[0])
+            continue
+
+        defaults = [
+            k
+            for k in keys
+            if k.partition(".")[2].endswith(
+                "_default"
+            )
+        ]
+
+        if len(defaults) == 1:
+            candidates.append(defaults[0])
+
+        else:
+            # 0 or >1 '_default' -> alphabetical
+            # fallback within plugin
+            candidates.append(sorted(keys)[0])
+
+    if not candidates:
+        return None
+
+    return sorted(candidates)[0]
 
 
 # =========================================================
@@ -99,7 +190,7 @@ def resolve_pipeline(
     pipeline_name: str | None,
     model_present: bool,
     user_pipelines: dict[str, list[str]],
-) -> list[str]:
+) -> tuple[str, list[str]]:
 
     _load_plugin_pipelines()
     _load_plugin_components()
@@ -110,8 +201,10 @@ def resolve_pipeline(
 
     if pipeline_name is None:
 
-        if "azure_default" in _PLUGIN_PIPELINES:
-            effective_name = "azure_default"
+        plugin_default = _plugin_default_pipeline()
+
+        if plugin_default is not None:
+            effective_name = plugin_default
 
         else:
             effective_name = (
@@ -124,7 +217,7 @@ def resolve_pipeline(
         effective_name = pipeline_name
 
     # -----------------------------------------------------
-    # Resolve pipeline source
+    # Resolve pipeline source (user -> plugin -> default)
     # -----------------------------------------------------
 
     if effective_name in user_pipelines:
@@ -134,25 +227,40 @@ def resolve_pipeline(
             ]
         )
 
-    elif effective_name in _PLUGIN_PIPELINES:
-        keys = list(
-            _PLUGIN_PIPELINES[
-                effective_name
-            ]
-        )
-
-    elif effective_name in DEFAULT_PIPELINES:
-        keys = list(
-            DEFAULT_PIPELINES[
-                effective_name
-            ]
-        )
-
     else:
-        raise ValueError(
-            f"Unknown pipeline: "
-            f"{effective_name}"
+        matches = _match_plugin_pipeline(
+            effective_name
         )
+
+        if len(matches) == 1:
+            keys = list(
+                _PLUGIN_PIPELINES[
+                    matches[0]
+                ]
+            )
+
+        elif len(matches) > 1:
+            raise ValueError(
+                f"Ambiguous pipeline "
+                f"'{effective_name}', "
+                f"defined by multiple plugins: "
+                f"{sorted(matches)}. "
+                f"Reference it with its plugin "
+                f"prefix (e.g. '{matches[0]}')."
+            )
+
+        elif effective_name in DEFAULT_PIPELINES:
+            keys = list(
+                DEFAULT_PIPELINES[
+                    effective_name
+                ]
+            )
+
+        else:
+            raise ValueError(
+                f"Unknown pipeline: "
+                f"{effective_name}"
+            )
 
     # -----------------------------------------------------
     # Validation
@@ -164,18 +272,18 @@ def resolve_pipeline(
             f"'{effective_name}' is empty"
         )
 
+    resolved: list[str] = []
+
     for k in keys:
-        if (
-            k
-            not in HANDLER_COMPONENT_REGISTRY
-        ):
-            raise ValueError(
-                f"Pipeline "
-                f"'{effective_name}' "
-                f"references unknown "
-                f"component '{k}'. "
-                f"Known components: "
-                f"{sorted(HANDLER_COMPONENT_REGISTRY.keys())}"
+        try:
+            resolved.append(
+                resolve_component_key(k)
             )
 
-    return keys
+        except ValueError as exc:
+            raise ValueError(
+                f"Pipeline "
+                f"'{effective_name}': {exc}"
+            ) from exc
+
+    return effective_name, resolved

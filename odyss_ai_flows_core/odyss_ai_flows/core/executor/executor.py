@@ -16,9 +16,15 @@ from odyss_ai_flows.core.executor.strategy import WorkStrategy
 from odyss_ai_flows.core.executor.node_execution_state import NodeExecutionState
 from odyss_ai_flows.core.builder.types import FlowStructure
 from odyss_ai_flows.core.utils.logger import logger
-from odyss_ai_flows.core.executor.execution_context import set_executor
+from odyss_ai_flows.core.executor.execution_context import set_executor, get_current_node_name
+from odyss_ai_flows.core.executor.cycle_detector import CycleDetector
 from odyss_ai_flows.core.executor.failure_latch import FailureLatch, _current_latch, get_latch
+from odyss_ai_flows.core.runtime.inputs import get_injected_results
 from pathlib import Path
+
+
+async def _sentinel() -> None:
+    return None
 
 
 class FlowExecutor:
@@ -53,6 +59,8 @@ class FlowExecutor:
             list[str],
         ] = {}
 
+        self.cycle_detector = CycleDetector()
+
     def _create_managed_task(self, coro: Awaitable[Any]) -> asyncio.Task:
         latch = get_latch()
         if latch.is_set():
@@ -69,9 +77,7 @@ class FlowExecutor:
 
     # ---------------------------------------------------------
 
-    async def run(self) -> RawFlowResult:
-
-        # --- Build node states and resolver maps ---
+    async def _init_node_states(self) -> None:
         for node in self.structure.nodes.values():
             state = NodeExecutionState(node)
             await state.determine_lazy()
@@ -94,6 +100,24 @@ class FlowExecutor:
                 key = id(entry.callable_obj)
                 self.callable_to_node_map.setdefault(key, []).append(node.name)
 
+    # ---------------------------------------------------------
+
+    async def run(self, target_node: Optional[str] = None) -> RawFlowResult:
+
+        # --- Build node states and resolver maps ---
+        await self._init_node_states()
+
+        if target_node is not None:
+            injected = get_injected_results() or {}
+            for dep_name, dep_result in injected.items():
+                state = self.node_states.get(dep_name)
+                if state is None:
+                    continue
+                state.result = dep_result
+                state.completed = True
+                state.done_event.set()
+                state.task = asyncio.create_task(_sentinel())
+
         set_executor(self)
 
         # --- Outcome tracking ---
@@ -110,11 +134,14 @@ class FlowExecutor:
             async with asyncio.TaskGroup() as tg:
                 self._tg = tg
 
-                for state in self.node_states.values():
-                    if not state.lazy:
-                        state.task = tg.create_task(state.run(self.strategy))
-
-            logger.info("Flow executed successfully")
+                if target_node is not None:
+                    target_state = self.node_states[target_node]
+                    target_state.task = tg.create_task(target_state.run(self.strategy))
+                else:
+                    for state in self.node_states.values():
+                        if not state.lazy:
+                            state.task = tg.create_task(state.run(self.strategy))
+                    logger.info("Flow executed successfully")
 
         except BaseExceptionGroup as eg:
             suppressed_error = eg
@@ -168,6 +195,9 @@ class FlowExecutor:
         if not state:
             raise RuntimeError(f"Node '{name}' not found")
 
+        if state.done_event.is_set():
+            return state.result
+
         if get_latch().is_set():
             raise asyncio.CancelledError()
 
@@ -179,7 +209,13 @@ class FlowExecutor:
             logger.info("Launching lazy node: %s", name)
             state.task = self._create_managed_task(state.run(self.strategy))
 
-        await state.done_event.wait()
+        caller = get_current_node_name()
+        if caller is not None:
+            with self.cycle_detector.track(caller, name):
+                await state.done_event.wait()
+        else:
+            await state.done_event.wait()
+
         return state.result
 
     # ---------------------------------------------------------

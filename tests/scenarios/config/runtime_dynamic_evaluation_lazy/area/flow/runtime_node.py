@@ -62,6 +62,10 @@ async def runtime_node():
             "mixed_secret"
         ),
 
+        "wrapped_env": await cget(
+            "wrapped_env"
+        ),
+
         "variant_value": await cget(
             "variant_value"
         ),

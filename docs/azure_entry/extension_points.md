@@ -170,7 +170,7 @@ Examples:
 ```jinja2
 {{ ENV("KEY") }}
 
-{{ SECRET("db-password") }}
+{{ VAULT("db-password") }}
 
 {{ CONFIG("shared.setting") }}
 ```

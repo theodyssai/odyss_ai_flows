@@ -30,6 +30,13 @@ class FrameworkError(Exception):
         super().__init__(msg)
 
 
+class CycleDetectedError(FrameworkError):
+    def __init__(self, path: list[str], run_name: str | None = None):
+        self.path = path
+        message = " -> ".join(path)
+        super().__init__(RuntimeError(f"Dependency cycle detected: {message}"), run_name)
+
+
 class FlowBreak(Exception):
     def __init__(self, message: str | None = None, run_name: str | None = None):
         super().__init__(message)

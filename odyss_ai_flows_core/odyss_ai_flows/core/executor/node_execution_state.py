@@ -14,6 +14,7 @@ from odyss_ai_flows.core.builder.types import FlowNode
 from odyss_ai_flows.core.config.api import cget
 from odyss_ai_flows.core.executor.exceptions import FlowBreak, FrameworkError, NodeExecutionError
 from odyss_ai_flows.core.executor.failure_latch import get_latch
+from odyss_ai_flows.core.executor.execution_context import set_current_node_name, reset_current_node_name
 
 
 class NodeExecutionState:
@@ -30,6 +31,7 @@ class NodeExecutionState:
         self.lazy = await cget("execution.lazy", default=False, scope=self.node.scope)
 
     async def run(self, strategy):
+        token = set_current_node_name(self.node.name)
         try:
             self.result = await strategy.run_node(
                 self.node.scope,
@@ -63,3 +65,6 @@ class NodeExecutionState:
             self.error = wrapped
             get_latch().claim(wrapped)
             raise wrapped from e
+
+        finally:
+            reset_current_node_name(token)

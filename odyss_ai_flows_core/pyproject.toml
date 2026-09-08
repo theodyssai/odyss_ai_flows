@@ -12,10 +12,9 @@ requires-python = ">=3.11"
 
 dependencies = [
     "jinja2",
-    "python-dotenv",
     "networkx",
+    "python-dotenv",
     "pydantic",
-    "aioodbc"
 ]
 
 [project.optional-dependencies]

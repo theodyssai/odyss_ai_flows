@@ -15,6 +15,9 @@ from pathlib import Path
 
 from odyss_ai_flows.core.config.tree import ConfigNode
 from odyss_ai_flows.core.config.resolver import resolve
+from odyss_ai_flows.core.config.exceptions import (
+    ConfigReferenceCycleError,
+)
 from odyss_ai_flows.core.config.providers import ConfigReference
 
 
@@ -33,6 +36,7 @@ class ConfigManager:
         *,
         default: Optional[Any] = None,
         node_scope: Optional[str] = "",
+        _ref_chain: Optional[list] = None,
     ) -> Any:
 
         key_path = key.split(".")
@@ -133,6 +137,7 @@ class ConfigManager:
         val = await self._resolve_references(
             val,
             node_scope=node_scope,
+            _ref_chain=_ref_chain,
         )
 
         return val
@@ -146,7 +151,10 @@ class ConfigManager:
         val: Any,
         *,
         node_scope: Optional[str],
+        _ref_chain: Optional[list] = None,
     ) -> Any:
+
+        chain = _ref_chain or []
 
         # ---------------------------------------------------------
         # Direct REF
@@ -154,9 +162,18 @@ class ConfigManager:
 
         if isinstance(val, ConfigReference):
 
+            ref_id = (node_scope or "", val.path)
+
+            if ref_id in chain:
+
+                raise ConfigReferenceCycleError(
+                    [path for _, path in chain + [ref_id]]
+                )
+
             return await self.get(
                 val.path,
                 node_scope=node_scope,
+                _ref_chain=chain + [ref_id],
             )
 
         # ---------------------------------------------------------
@@ -169,6 +186,7 @@ class ConfigManager:
                 await self._resolve_references(
                     item,
                     node_scope=node_scope,
+                    _ref_chain=chain,
                 )
                 for item in val
             ]
@@ -183,6 +201,7 @@ class ConfigManager:
                 k: await self._resolve_references(
                     v,
                     node_scope=node_scope,
+                    _ref_chain=chain,
                 )
                 for k, v in val.items()
             }

@@ -1,4 +1,6 @@
 {
-  "direct_secret": "{{ SECRET('token') }}",
-  "ref_secret": "{{ REF('direct_secret') }}"
+  "direct_secret": "{{ VAULT('token') }}",
+  "ref_secret": "{{ REF('direct_secret') }}",
+  "wrapped_secret": "{{ SECRET(ENV('REF_SENS_ENV')) }}",
+  "ref_wrapped_secret": "{{ REF('wrapped_secret') }}"
 }

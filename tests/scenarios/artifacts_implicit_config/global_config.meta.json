@@ -1,0 +1,8 @@
+{
+    "am_name": "shared_inmem",
+    "artifact_config": {
+        "shared_inmem": {
+            "backend": "counting_inmem"
+        }
+    }
+}

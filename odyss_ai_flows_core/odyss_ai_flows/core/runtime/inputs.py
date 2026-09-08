@@ -15,6 +15,9 @@ from odyss_ai_flows.core.config.api import cget
 
 
 _CURRENT_INPUTS = contextvars.ContextVar("CURRENT_INPUTS")
+_INJECTED_NODE_RESULTS: contextvars.ContextVar[
+    Dict[str, Any] | None
+] = contextvars.ContextVar("INJECTED_NODE_RESULTS", default=None)
 
 
 def set_inputs(values: Dict[str, Any]):
@@ -45,9 +48,22 @@ def iget(
 
 
 
+def set_injected_results(results: Dict[str, Any] | None) -> None:
+    _INJECTED_NODE_RESULTS.set(results)
+
+
+def get_injected_results() -> Dict[str, Any] | None:
+    return _INJECTED_NODE_RESULTS.get()
+
+
 async def wrap_sensitive_inputs(inputs: Dict[str, Any]) -> Dict[str, Any]:
     sensitive_keys = await cget("inputs.sensitive_keys", default=[])
     return {
         k: SensitiveValue(v) if k in sensitive_keys else v
         for k, v in inputs.items()
     }
+
+
+
+
+

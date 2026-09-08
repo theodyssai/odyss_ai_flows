@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odyss_ai_flows_token_limiter"
+version = "0.1.0"
+authors = [
+    { name = "Patryk Fidler", email = "fidler.patryk@gmail.com" }
+]
+requires-python = ">=3.11"
+
+dependencies = ["redis>=5"]
+
+[project.optional-dependencies]
+test = ["fakeredis[lua]"]
+
+[tool.setuptools.packages.find]
+include = ["odyss_ai_flows_token_limiter*"]

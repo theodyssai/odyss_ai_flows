@@ -274,6 +274,23 @@ Behavior adapts based on:
 
 This allows most users to avoid explicit pipeline configuration entirely.
 
+The default is chosen deterministically:
+
+1. Each installed plugin contributes one **default pipeline**:
+   - its sole registered pipeline, if it registered exactly one;
+   - otherwise the pipeline whose name ends with `_default`
+     (e.g. the Azure extension's `azure_default`);
+   - otherwise — if there is no `_default`, or more than one — the
+     alphabetically-first of that plugin's pipelines.
+2. Across all installed plugins, the **alphabetically-first** of those
+   per-plugin defaults wins (qualified by plugin name, so e.g.
+   `odyss_ai_flows_anthropic.*` precedes `odyss_ai_flows_azure.*`).
+3. If no LLM plugin is installed at all, the framework falls back to its
+   minimal core `structured` / `default` pipeline.
+
+A single installed plugin therefore becomes the default automatically with
+no configuration; with several installed, alphabetical order decides.
+
 ---
 
 # Structured Outputs as Pipeline Semantics

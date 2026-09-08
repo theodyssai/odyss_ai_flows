@@ -1,0 +1,19 @@
+{
+    "include": [
+        "secret_node",
+        "plain_node"
+    ],
+
+    "map": {
+
+        "secret_node":
+            "secret_key",
+
+        "plain_node":
+            "plain_key"
+    },
+
+    "sensitive": [
+        "secret_node"
+    ]
+}

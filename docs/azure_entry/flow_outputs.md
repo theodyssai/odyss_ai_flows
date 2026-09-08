@@ -216,6 +216,51 @@ This returns only the projected/exported output set after `outputs.json` process
 
 ---
 
+# Outputs as a Collection
+
+`FlowResult` behaves like a read-only mapping over its exported outputs, so you can use it directly wherever a collection is expected:
+
+```python
+# Iteration yields exported output names
+for name in result:
+    print(name)
+
+# Mapping accessors
+result.keys()
+result.values()
+result.items()
+
+# Length and membership
+len(result)
+"article" in result
+
+# Dictionary conversion
+data = dict(result)
+```
+
+Every one of these reflects the **projected** output surface — after `include` filtering and `map` renaming. So `result.keys()` returns the mapped, exported names; filtered-out and renamed-away node names are absent:
+
+```json
+{
+  "include": ["cleanup"],
+  "map": { "cleanup": "article" }
+}
+```
+
+```python
+list(result.keys())      # ["article"]
+"article" in result      # True
+"cleanup" in result      # False  (renamed away)
+"draft" in result        # False  (filtered out)
+dict(result)             # {"article": "..."}
+```
+
+`dict(result)` is a **shallow** conversion: nested `FlowResult` values are preserved as-is. For a fully serializable nested structure, use `to_dict()` instead.
+
+To reach the unfiltered internal graph, use `result.all_node_results` (see above) — the collection protocol intentionally only exposes the public output surface.
+
+---
+
 # Example Full Flow
 
 Flow structure:

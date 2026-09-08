@@ -100,7 +100,7 @@ async def ENV(key: str) -> Any:
     return os.environ.get(key)
 
 
-async def LITERAL_SECRET(value: str) -> Any:
+async def SECRET(value: Any) -> Any:
     return value
 
 
@@ -118,19 +118,19 @@ async def REF(path: str) -> ConfigReference:
 # Bootstrap providers
 # ---------------------------------------------------------
 
-async def SECRET(key: str) -> Any:
+async def VAULT(key: str) -> Any:
 
     from odyss_ai_flows_azure.config.config_providers import (
         AzureSecretProvider,
     )
 
     register_provider(
-        "SECRET",
+        "VAULT",
         AzureSecretProvider(),
         sensitive=True,
     )
 
-    provider = _providers["SECRET"]
+    provider = _providers["VAULT"]
 
     result = provider.fn(key)
 
@@ -171,12 +171,6 @@ register_provider(
 )
 
 register_provider(
-    "LITERAL_SECRET",
-    LITERAL_SECRET,
-    sensitive=True,
-)
-
-register_provider(
     "REF",
     REF,
 )
@@ -184,6 +178,12 @@ register_provider(
 register_provider(
     "SECRET",
     SECRET,
+    sensitive=True,
+)
+
+register_provider(
+    "VAULT",
+    VAULT,
     sensitive=True,
 )
 

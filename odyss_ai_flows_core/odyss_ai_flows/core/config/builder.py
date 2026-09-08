@@ -25,6 +25,9 @@ from odyss_ai_flows.core.config.global_config import (
 )
 from odyss_ai_flows.core.utils.logger import logger
 from odyss_ai_flows.core.files.repository import FileEntry
+from odyss_ai_flows.core.config.exceptions import (
+    ConfigMergeCycleError,
+)
 
 
 # ---------------------------------------------------------
@@ -227,7 +230,17 @@ def _load_config_entry(
 
 def _load_config_with_ref(
     config_path: Path,
+    _chain: List[Path] | None = None,
 ) -> dict:
+
+    config_path = config_path.resolve()
+
+    chain = _chain or []
+
+    if config_path in chain:
+        raise ConfigMergeCycleError(chain + [config_path])
+
+    chain = chain + [config_path]
 
     data = load_json(config_path)
 
@@ -244,7 +257,7 @@ def _load_config_with_ref(
             f"Referenced config file not found: {ref_path}"
         )
 
-    base_data = load_json(ref_path)
+    base_data = _load_config_with_ref(ref_path, chain)
 
     override_data = {
         k: v

@@ -138,5 +138,13 @@ dmypy.json
 cython_debug/
 .env.local
 .vscode
+.DS_Store
+
+# Local Azure Functions host scratch files (the durable test host lives in
+# tests/scenarios/durable/ — these root-anchored patterns must not shadow it)
+/function_app.py
+/global_config.json
+/host.json
+/local.settings.json
 
 tests/test_outputs

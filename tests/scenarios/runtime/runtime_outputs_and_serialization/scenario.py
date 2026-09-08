@@ -41,6 +41,43 @@ async def run_scenario():
     }
 
     # =====================================================
+    # Collection protocol respects projection
+    # =====================================================
+
+    expected_keys = {
+        "public_summary",
+        "renamed_nested",
+        "renamed_object",
+    }
+
+    assert set(result.keys()) == expected_keys
+
+    assert set(result) == expected_keys
+
+    assert len(result) == 3
+
+    assert "public_summary" in result
+
+    # Filtered node absent from collection surface
+    assert "hidden_internal" not in result
+
+    # Remapped-away raw name absent from collection surface
+    assert "producer_a" not in result
+
+    # Shallow dict conversion mirrors outputs
+    assert dict(result) == result.outputs
+
+    assert dict(result.items()) == result.outputs
+
+    assert set(dict(result.items()).keys()) == expected_keys
+
+    # values() reflects projected values
+    assert (
+        dict(zip(result.keys(), result.values()))
+        == result.outputs
+    )
+
+    # =====================================================
     # Mapping semantics
     # =====================================================
 

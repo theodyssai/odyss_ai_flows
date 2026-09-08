@@ -84,10 +84,10 @@ The framework currently includes several built-in providers:
 | Provider | Purpose |
 |---|---|
 | `ENV(...)` | Environment variable lookup |
-| `SECRET(...)` | Secret provider lookup |
+| `VAULT(...)` | Secret backend (key vault) lookup |
 | `CONFIG(...)` | External configuration provider lookup |
 | `REF(...)` | Config graph reference |
-| `LITERAL_SECRET(...)` | Explicit sensitive literal |
+| `SECRET(...)` | Mark a wrapped value as sensitive (any source) |
 
 ---
 
@@ -107,15 +107,15 @@ This allows configuration to remain environment-independent while avoiding hardc
 
 ---
 
-# Secret Providers
+# Secret Backend (`VAULT()`)
 
-The `SECRET()` provider retrieves secrets through the active secret backend.
+The `VAULT()` provider retrieves secrets through the active secret backend.
 
 Example:
 
 ```json
 {
-  "api_key": "{{ SECRET('openai-api-key') }}"
+  "api_key": "{{ VAULT('openai-api-key') }}"
 }
 ```
 
@@ -127,9 +127,29 @@ However, when the Azure extension package is installed:
 odyss_ai_flows_azure
 ```
 
-Azure secret providers automatically register themselves as the default implementation unless a custom provider was already registered.
+an Azure Key Vault backend automatically registers itself as the default `VAULT` implementation unless a custom provider was already registered.
 
 This means Azure Key Vault integration becomes available automatically without additional bootstrap code.
+
+`VAULT()` values are sensitive: their resolved result is wrapped as a `SensitiveValue` automatically.
+
+---
+
+# Marking Values Sensitive (`SECRET()`)
+
+`SECRET()` wraps a value from *any* source as sensitive.
+
+Unlike `VAULT()`, it performs no lookup of its own. It takes an already-resolved value and marks it sensitive, so it composes over any other provider:
+
+```json
+{
+  "from_env":     "{{ SECRET(ENV('OPENAI_API_KEY')) }}",
+  "from_config":  "{{ SECRET(CONFIG('db-password')) }}",
+  "from_literal": "{{ SECRET('inline-token') }}"
+}
+```
+
+Any config entry that uses `SECRET()` is wrapped as a `SensitiveValue` after rendering, regardless of where the underlying value came from.
 
 ---
 
@@ -145,7 +165,7 @@ Example:
 }
 ```
 
-Like `SECRET()`, the core framework does not hardcode a specific implementation.
+Like `VAULT()`, the core framework does not hardcode a specific implementation.
 
 When the Azure extension package is installed, Azure configuration providers automatically become the default implementation unless explicitly overridden.
 
@@ -215,8 +235,8 @@ This restriction exists intentionally to preserve:
 Some providers are marked as sensitive.
 
 Examples:
+- `VAULT()`
 - `SECRET()`
-- `LITERAL_SECRET()`
 
 Sensitive values are automatically wrapped as `SensitiveValue` objects after rendering.
 
@@ -261,13 +281,13 @@ The explicit `.unwrap()` call makes sensitive access intentional and visible ins
 
 # Explicit Sensitive Literals
 
-`LITERAL_SECRET()` allows explicitly marking hardcoded values as sensitive.
+Use `SECRET()` for sensitive literals as well.
 
 Example:
 
 ```json
 {
-  "api_key": "{{ LITERAL_SECRET('hardcoded-secret') }}"
+  "api_key": "{{ SECRET('hardcoded-secret') }}"
 }
 ```
 
@@ -337,7 +357,7 @@ Example:
   "azure_openai": {
     "deployment_name": "{{ CONFIG('azure-openai-deployment') }}",
 
-    "api_key": "{{ SECRET('openai-api-key') }}",
+    "api_key": "{{ VAULT('openai-api-key') }}",
 
     "temperature": 0.7
   },

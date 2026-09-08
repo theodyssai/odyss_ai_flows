@@ -9,12 +9,14 @@
 # aleksander.bydlowski@gmail.com
 from pathlib import Path
 from typing import Any, Dict, Optional, List, Union
+import re
 
 import asyncio
 import traceback
 
 from odyss_ai_flows.core.runtime.inputs import (
     set_inputs,
+    set_injected_results,
     wrap_sensitive_inputs,
 )
 
@@ -29,12 +31,20 @@ from odyss_ai_flows.core.config.api import (
     get_node_scope,
 )
 
+from odyss_ai_flows.core.config.context import (
+    config as _config,
+)
+
 from odyss_ai_flows.core.builder.builder import (
     build_and_initialize_structure,
 )
 
 from odyss_ai_flows.core.executor.executor import (
     FlowExecutor,
+)
+
+from odyss_ai_flows.core.executor.cycle_passive_detector import (
+    analyze_cycles,
 )
 
 from odyss_ai_flows.core.executor.raw_flow_result import (
@@ -307,6 +317,11 @@ def _resolve_strategy(
 # Runner
 # ---------------------------------------------------------
 
+def _normalize_scope_for_display(scope: str) -> str:
+    parts = [part for part in re.split(r"[\\/]+", scope) if part]
+    return "/".join(parts)
+
+
 def run_flow(
     flow: Union[
         str,
@@ -342,6 +357,12 @@ def run_flow(
 
     max_concurrency: Optional[
         int
+    ] = None,
+
+    target_node: Optional[str] = None,
+
+    injected_results: Optional[
+        Dict[str, Any]
     ] = None,
 
     **kwargs: Any,
@@ -465,15 +486,19 @@ def run_flow(
 
         else:
 
-            idx = next_index_for_scope(
+            normalized_scope = _normalize_scope_for_display(
                 node_scope
+            )
+
+            idx = next_index_for_scope(
+                normalized_scope
             )
 
             effective_run_name = (
 
                 f"{state.top_run_name}, "
 
-                f"nested in: {node_scope}, "
+                f"nested in: {normalized_scope}, "
 
                 f"index: {idx}"
             )
@@ -515,6 +540,11 @@ def run_flow(
             set_inputs(
                 wrapped_inputs
             )
+
+            if injected_results is not None:
+                set_injected_results(
+                    injected_results
+                )
 
             # -------------------------------------------------
             # File repository
@@ -561,6 +591,14 @@ def run_flow(
                 )
             )
 
+            passive_cycle_detection = await _config.get(
+                "execution.passive_cycle_detection",
+                default=True,
+            )
+
+            if passive_cycle_detection:
+                analyze_cycles(structure)
+
             executor = FlowExecutor(
                 structure=structure,
                 strategy=resolved_strategy,
@@ -579,7 +617,7 @@ def run_flow(
             # -------------------------------------------------
 
             raw_result: RawFlowResult = (
-                await executor.run()
+                await executor.run(target_node)
             )
 
         except Exception as e:

@@ -1,0 +1,16 @@
+{
+  "middleware": ["token_limiter"],
+  "token_limiter": {
+    "general": {
+      "input": { "minute": 1000000 },
+      "output": { "minute": 1000000 }
+    },
+    "deployment": {
+      "input": { "minute": 1000000 },
+      "output": { "minute": 1000000 }
+    }
+  },
+  "llm": {
+    "pipeline": "azure_default"
+  }
+}

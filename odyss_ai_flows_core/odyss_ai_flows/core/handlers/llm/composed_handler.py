@@ -137,22 +137,12 @@ class ComposedHandler(AbstractHandler):
             default={},
         )
 
-        keys = resolve_pipeline(
+        effective_name, keys = resolve_pipeline(
             pipeline_name=pipeline,
             model_present=bool(
                 self.model_class
             ),
             user_pipelines=user_pipelines,
-        )
-
-        effective_name = (
-            pipeline
-            if pipeline is not None
-            else (
-                "structured"
-                if self.model_class
-                else "default"
-            )
         )
 
         logger.debug(

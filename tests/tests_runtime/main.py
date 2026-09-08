@@ -6,6 +6,10 @@ from tests.tests_runtime.discovery import (
     discover_scenarios,
 )
 
+from tests.tests_runtime.mode import (
+    resolve_requested_mode,
+)
+
 from tests.tests_runtime.reporting import (
     write_suite_summary,
 )
@@ -49,6 +53,25 @@ def main() -> int:
         return 0
 
     # -----------------------------------------------------
+    # Test mode (static-only vs live model execution)
+    # -----------------------------------------------------
+
+    try:
+        mode = resolve_requested_mode(
+            static=(
+                "--static" in args
+                or "--no-llm" in args
+            ),
+            live="--live" in args,
+        )
+
+    except ValueError as exc:
+
+        print(f"error: {exc}")
+
+        return 2
+
+    # -----------------------------------------------------
     # Optional subtree filter
     # -----------------------------------------------------
 
@@ -69,7 +92,8 @@ def main() -> int:
     # -----------------------------------------------------
 
     suite = run_test_suite(
-        filter_prefix=filter_prefix
+        filter_prefix=filter_prefix,
+        mode=mode,
     )
 
     write_suite_summary(

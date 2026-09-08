@@ -28,10 +28,10 @@ from odyss_ai_flows.core.config.utils import (
 # Mock providers
 # -------------------------------------------------
 
-async def MOCK_SECRET(key: str):
+async def MOCK_VAULT(key: str):
 
     logger.info(
-        "[MOCK_SECRET] resolving key=%r",
+        "[MOCK_VAULT] resolving key=%r",
         key,
     )
 
@@ -70,7 +70,7 @@ async def run_scenario():
 
     from odyss_ai_flows.core.config.providers import (
         ENV,
-        LITERAL_SECRET,
+        SECRET,
     )
 
     register_provider(
@@ -79,14 +79,14 @@ async def run_scenario():
     )
 
     register_provider(
-        "LITERAL_SECRET",
-        LITERAL_SECRET,
+        "VAULT",
+        MOCK_VAULT,
         sensitive=True,
     )
 
     register_provider(
         "SECRET",
-        MOCK_SECRET,
+        SECRET,
         sensitive=True,
     )
 
@@ -154,6 +154,16 @@ async def run_scenario():
             secret.unwrap(),
         )
 
+    wrapped_env = await cget(
+        "wrapped_env"
+    )
+
+    logger.info(
+        "wrapped_env -> %r (%s)",
+        wrapped_env,
+        type(wrapped_env).__name__,
+    )
+
     merged = await cget(
         "merged_dict"
     )
@@ -181,6 +191,15 @@ async def run_scenario():
 
     assert secret.unwrap() == (
         "secret::token"
+    )
+
+    assert isinstance(
+        wrapped_env,
+        SensitiveValue,
+    )
+
+    assert wrapped_env.unwrap() == (
+        "env_value"
     )
 
     assert merged == {

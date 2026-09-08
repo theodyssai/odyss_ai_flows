@@ -40,7 +40,7 @@ async def ENV(key: str):
     return values.get(key)
 
 
-async def SECRET(key: str):
+async def VAULT(key: str):
 
     return f"secret:{key}"
 
@@ -74,9 +74,20 @@ async def run_scenario():
     clear_providers()
     clear_semantic_template_cache()
 
+    # The real core SECRET wrapper marks any wrapped value sensitive.
+    from odyss_ai_flows.core.config.providers import (
+        SECRET,
+    )
+
     register_provider(
         "ENV",
         ENV,
+    )
+
+    register_provider(
+        "VAULT",
+        VAULT,
+        sensitive=True,
     )
 
     register_provider(
@@ -101,6 +112,7 @@ async def run_scenario():
     )
 
     assert "ENV" in get_providers()
+    assert "VAULT" in get_providers()
     assert "SECRET" in get_providers()
 
     result = await run_flow(
@@ -209,6 +221,25 @@ async def run_scenario():
 
     assert mixed.unwrap() == (
         "prefix:secret:token"
+    )
+
+    # =================================================
+    # SECRET wrapper over an arbitrary source
+    # =================================================
+
+    wrapped_env = runtime["wrapped_env"]
+
+    assert isinstance(
+        wrapped_env,
+        SensitiveValue,
+    )
+
+    assert str(wrapped_env) == (
+        SensitiveValue.PLACEHOLDER
+    )
+
+    assert wrapped_env.unwrap() == (
+        "development"
     )
 
     # =================================================

@@ -13,7 +13,11 @@ from odyss_ai_flows_artifacts.backends.base import (
     JournalEntry,
 )
 from odyss_ai_flows_artifacts.metadata import MetadataValue
-from odyss_ai_flows_artifacts.relationship import ArtifactRelationship
+from odyss_ai_flows_artifacts.query import JournalFilter, RelFilter
+from odyss_ai_flows_artifacts.relationship import (
+    REL_DERIVED_FROM,
+    ArtifactRelationship,
+)
 
 
 class InMemoryBackend(Backend):
@@ -60,7 +64,7 @@ class InMemoryBackend(Backend):
                 continue
             if filters.get("alias") is not None and row.alias != filters["alias"]:
                 continue
-            if filters.get("parent_operation_id") is not None and row.parent_operation_id != filters["parent_operation_id"]:
+            if filters.get("origin_operation_id") is not None and row.origin_operation_id != filters["origin_operation_id"]:
                 continue
             if filters.get("adapter_name") is not None and row.adapter_name != filters["adapter_name"]:
                 continue
@@ -71,21 +75,61 @@ class InMemoryBackend(Backend):
                 req = {tags} if isinstance(tags, str) else set(tags)
                 if not req.issubset(set(row.tags)):
                     continue
+            if not self._match_rels_and_journal(row.id, filters):
+                continue
             ids.append(row.id)
         return ids
+
+    def _match_rels_and_journal(self, aid: str, filters: Dict[str, Any]) -> bool:
+        # REL_DERIVED_FROM edge: child --derived_from--> parent
+        # (from_id = child, to_id = parent).
+        for pid in set(filters.get("children_of") or []):
+            if (aid, pid, REL_DERIVED_FROM) not in self.relationships:
+                return False
+        for cid in set(filters.get("parents_of") or []):
+            if (cid, aid, REL_DERIVED_FROM) not in self.relationships:
+                return False
+        for rf in (filters.get("related") or []):
+            if not isinstance(rf, RelFilter):
+                raise TypeError("related[] expects RelFilter")
+            key = (
+                (aid, rf.to_id, rf.type) if rf.to_id is not None
+                else (rf.from_id, aid, rf.type)
+            )
+            if key not in self.relationships:
+                return False
+        jf = filters.get("journal")
+        if jf is not None:
+            if not isinstance(jf, JournalFilter):
+                raise TypeError("journal expects JournalFilter")
+            ok = False
+            for e in self.journal:
+                if e.artifact_id != aid:
+                    continue
+                if jf.entry_type is not None and e.entry_type != jf.entry_type:
+                    continue
+                if jf.before is not None and e.timestamp is not None and e.timestamp > jf.before:
+                    continue
+                if jf.after is not None and e.timestamp is not None and e.timestamp < jf.after:
+                    continue
+                ok = True
+                break
+            if not ok:
+                return False
+        return True
 
     async def query_relationships(
         self,
         *,
-        source_id: Optional[str] = None,
-        target_id: Optional[str] = None,
+        from_id: Optional[str] = None,
+        to_id: Optional[str] = None,
         relationship_type: Optional[str] = None,
     ) -> List[ArtifactRelationship]:
         out = []
         for rel in self.relationships.values():
-            if source_id is not None and rel.source_id != source_id:
+            if from_id is not None and rel.from_id != from_id:
                 continue
-            if target_id is not None and rel.target_id != target_id:
+            if to_id is not None and rel.to_id != to_id:
                 continue
             if relationship_type is not None and rel.relationship_type != relationship_type:
                 continue
@@ -139,10 +183,10 @@ class InMemoryBackend(Backend):
             for k, v in upd.fields.items():
                 setattr(row, k, v)
         for rel in payload.relationship_adds:
-            key = (rel.source_id, rel.target_id, rel.relationship_type)
+            key = (rel.from_id, rel.to_id, rel.relationship_type)
             self.relationships[key] = ArtifactRelationship(
-                source_id=rel.source_id,
-                target_id=rel.target_id,
+                from_id=rel.from_id,
+                to_id=rel.to_id,
                 relationship_type=rel.relationship_type,
                 metadata=dict(rel.metadata) if rel.metadata else None,
                 created_at=datetime.utcnow(),
@@ -178,7 +222,7 @@ class InMemoryBackend(Backend):
             }
             self.relationships = {
                 k: v for k, v in self.relationships.items()
-                if v.source_id != aid and v.target_id != aid
+                if v.from_id != aid and v.to_id != aid
             }
             self.journal = [e for e in self.journal if e.artifact_id != aid]
 

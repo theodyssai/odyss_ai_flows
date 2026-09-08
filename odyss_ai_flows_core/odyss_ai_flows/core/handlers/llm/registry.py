@@ -27,6 +27,9 @@ from odyss_ai_flows.core.handlers.llm.components.base import (
 from odyss_ai_flows.core.handlers.llm.components.renderers import (
     PromptRenderer,
 )
+from odyss_ai_flows.core.utils.logger import (
+    logger,
+)
 
 
 # =========================================================
@@ -55,6 +58,14 @@ HANDLER_COMPONENT_REGISTRY: Dict[
 _COMPONENTS_LOADED = False
 
 
+def _plugin_prefix(ep) -> str:
+    return (
+        ep.value
+        .partition(":")[0]
+        .partition(".")[0]
+    )
+
+
 def _load_plugin_components():
     global _COMPONENTS_LOADED
 
@@ -73,10 +84,22 @@ def _load_plugin_components():
         )
 
     for ep in eps:
-        cls = ep.load()
+        # Isolate a broken plugin: any failure loading one entry
+        # point must not prevent the others from registering.
+        try:
+            cls = ep.load()
+
+        except Exception as exc:
+            logger.warning(
+                f"Skipping LLM component "
+                f"'{ep.name}' ({ep.value}): "
+                f"{exc!r}"
+            )
+
+            continue
 
         HANDLER_COMPONENT_REGISTRY[
-            ep.name
+            f"{_plugin_prefix(ep)}.{ep.name}"
         ] = cls
 
     _COMPONENTS_LOADED = True
@@ -96,6 +119,41 @@ def register_handler_component(
     ] = cls
 
 
+def _namespaced_matches(name: str) -> list[str]:
+    suffix = "." + name
+
+    return [
+        k
+        for k in HANDLER_COMPONENT_REGISTRY
+        if k.endswith(suffix)
+    ]
+
+
+def resolve_component_key(ref: str) -> str:
+    if ref in HANDLER_COMPONENT_REGISTRY:
+        return ref
+
+    matches = _namespaced_matches(ref)
+
+    if len(matches) == 1:
+        return matches[0]
+
+    if len(matches) > 1:
+        raise ValueError(
+            f"Ambiguous component '{ref}', "
+            f"defined by multiple plugins: "
+            f"{sorted(matches)}. "
+            f"Reference it with its plugin "
+            f"prefix (e.g. '{matches[0]}')."
+        )
+
+    raise ValueError(
+        f"Unknown component '{ref}'. "
+        f"Known components: "
+        f"{sorted(HANDLER_COMPONENT_REGISTRY.keys())}"
+    )
+
+
 def resolve_component_class(
     ref: Union[
         str,
@@ -106,18 +164,8 @@ def resolve_component_class(
     if isinstance(ref, str):
         _load_plugin_components()
 
-        if (
-            ref
-            not in HANDLER_COMPONENT_REGISTRY
-        ):
-            raise ValueError(
-                f"Unknown component '{ref}'. "
-                f"Known components: "
-                f"{sorted(HANDLER_COMPONENT_REGISTRY.keys())}"
-            )
-
         return HANDLER_COMPONENT_REGISTRY[
-            ref
+            resolve_component_key(ref)
         ]
 
     return ref

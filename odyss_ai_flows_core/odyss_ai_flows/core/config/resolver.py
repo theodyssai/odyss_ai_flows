@@ -27,13 +27,10 @@ from odyss_ai_flows.core.config.providers import (
 from odyss_ai_flows.core.config.tree import ConfigNode
 from odyss_ai_flows.core.config.utils import SensitiveValue
 
+from odyss_ai_flows.core.config.exceptions import (
+    InvalidReferenceCompositionError,
+)
 
-# ---------------------------------------------------------
-# Exceptions
-# ---------------------------------------------------------
-
-class InvalidReferenceCompositionError(RuntimeError):
-    pass
 
 # ---------------------------------------------------------
 # Semantic template cache

@@ -21,7 +21,8 @@
     "{{ 2 + 2 }}",
     "{{ ENV('MODE') }}"
   ],
-  "secret_value": "{{ SECRET('token') }}",
-  "mixed_secret": "{{ 'prefix:' + SECRET('token') }}",
+  "secret_value": "{{ VAULT('token') }}",
+  "mixed_secret": "{{ 'prefix:' + VAULT('token') }}",
+  "wrapped_env": "{{ SECRET(ENV('MODE')) }}",
   "variant_value": "base value"
 }

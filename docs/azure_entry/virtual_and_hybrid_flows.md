@@ -83,14 +83,15 @@ Runtime augmentation:
 
 ```python
 flow = PreparedFlow(
-    base_path="article_flow"
 )
 
 flow.fset(
-    "analysis.py",
+    "analysis.py", type=python_node,
     analysis_callable
 )
 ```
+
+run_flow(flow)
 
 The resulting runtime flow contains:
 - physical nodes

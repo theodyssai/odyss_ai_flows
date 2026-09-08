@@ -1,0 +1,5 @@
+{
+    "ref_a": "{{ REF('ref_b') }}",
+    "ref_b": "{{ REF('ref_a') }}",
+    "self_ref": "{{ REF('self_ref') }}"
+}

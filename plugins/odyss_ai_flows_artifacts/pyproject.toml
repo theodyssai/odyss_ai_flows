@@ -1,0 +1,15 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odyss_ai_flows_artifacts"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+dependencies = [
+    "aioodbc",
+]
+
+[tool.setuptools.packages.find]
+include = ["odyss_ai_flows_artifacts*"]

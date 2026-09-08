@@ -25,6 +25,10 @@ from odyss_ai_flows_azure.handlers.helpers.token_buffer import (
 )
 
 
+def _unwrap(value: Any) -> Any:
+    return value.unwrap() if hasattr(value, "unwrap") else value
+
+
 async def _get_client_and_config() -> tuple[Any, dict]:
     key = await cget(
         "oai_connection_name",
@@ -36,10 +40,12 @@ async def _get_client_and_config() -> tuple[Any, dict]:
         default={},
     )
 
+    api_key = _unwrap(config.get("api_key"))
+
     client = get_azure_openai_client(
         config["endpoint"],
         config["api_version"],
-        config.get("api_key"),
+        api_key,
     )
 
     return client, config
