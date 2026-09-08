@@ -1,4 +1,4 @@
-# Copyright 2026 ODYSS.AI AG
+﻿# Copyright 2026 ODYSS.AI AG
 # SPDX-License-Identifier: Apache-2.0
 #
 # See the NOTICE file for attribution information.
@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 # --- Exceptions ---
 
 

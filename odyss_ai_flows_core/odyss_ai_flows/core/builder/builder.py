@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 from pathlib import Path
 
 from odyss_ai_flows.core.utils.logger import logger

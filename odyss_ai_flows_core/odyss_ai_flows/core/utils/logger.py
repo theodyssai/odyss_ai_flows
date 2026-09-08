@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 import logging
 import os
 import sys

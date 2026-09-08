@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 from typing import Any, Optional
 
 from odyss_ai_flows.core.config.builder import build_config_tree

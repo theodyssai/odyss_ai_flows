@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 # core/config/providers.py
 
 import os

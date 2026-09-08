@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 from abc import ABC, abstractmethod
 from typing import Any
 from odyss_ai_flows.core.config.api import set_node_scope

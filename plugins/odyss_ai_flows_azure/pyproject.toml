@@ -1,4 +1,4 @@
-[build-system]
+﻿[build-system]
 requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "odyss_ai_flows_azure"
 version = "0.1.0"
 authors = [
-    { name = "Aleksander Bydlowski", email = "aleksander.bydlowski@gmail.com" }
+    { name = "Aleksander Bydlowski", email = "ai@bydlow.ski" }
 ]
 requires-python = ">=3.11"
 

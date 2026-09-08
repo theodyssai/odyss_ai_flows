@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 from typing import Callable, TypeVar, ParamSpec, cast, Awaitable
 from pathlib import Path
 

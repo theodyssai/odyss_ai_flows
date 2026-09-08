@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
+
+from dotenv import load_dotenv
 
 from tests.tests_runtime.discovery import (
     discover_scenarios,
@@ -39,6 +42,11 @@ def _print_scenarios_list():
 # ---------------------------------------------------------
 
 def main() -> int:
+
+    load_dotenv(
+        Path(__file__).resolve().parents[2] / ".env.local",
+        override=False,
+    )
 
     args = sys.argv[1:]
 

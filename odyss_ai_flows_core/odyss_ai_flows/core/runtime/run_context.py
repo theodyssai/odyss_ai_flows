@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 # odyss_ai_flows/core/run_context.py
 from __future__ import annotations
 from dataclasses import dataclass, field

@@ -6,7 +6,7 @@
 # Author:
 # Aleksander Bydłowski
 # abydlowski@theodyss.ai
-# aleksander.bydlowski@gmail.com
+# ai@bydlow.ski
 from __future__ import annotations
 from functools import wraps
 from typing import Any, Awaitable, Callable, Dict, TYPE_CHECKING
