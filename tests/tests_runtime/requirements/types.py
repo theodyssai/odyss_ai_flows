@@ -259,8 +259,13 @@ class CustomRequirement(Requirement):
 
     axis: str = CONFIG_AXIS
 
+    cache_key: str | None = None
+
     def describe(self) -> str:
         return self.description
+
+    def suite_cache_key(self) -> str | None:
+        return self.cache_key
 
     def check(
         self,

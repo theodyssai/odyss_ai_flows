@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odyss_ai_flows_tests"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+dependencies = [
+    "python-dotenv",
+    "rich",
+]
+
+[project.scripts]
+odyss-ai-flows-test = "tests.tests_runtime.main:main"
+
+[tool.setuptools.packages.find]
+where = [".."]
+include = ["tests*"]

@@ -76,6 +76,7 @@ def custom(
     description: str,
     *,
     axis: str = CONFIG_AXIS,
+    cache_key: str | None = None,
 ) -> CustomRequirement:
     """Wrap a check function inline.
 
@@ -87,6 +88,7 @@ def custom(
         check_fn=check_fn,
         description=description,
         axis=axis,
+        cache_key=cache_key,
     )
 
 
@@ -94,6 +96,7 @@ def custom_check(
     description: str,
     *,
     axis: str = CONFIG_AXIS,
+    cache_key: str | None = None,
 ) -> Callable[[CheckFn], CustomRequirement]:
     """Decorator form of :func:`custom`.
 
@@ -109,6 +112,7 @@ def custom_check(
             check_fn=check_fn,
             description=description,
             axis=axis,
+            cache_key=cache_key,
         )
 
     return decorate
@@ -249,6 +253,7 @@ class Requires(list):
         check_fn: CheckFn,
         *,
         axis: str = CONFIG_AXIS,
+        cache_key: str | None = None,
     ) -> "Requires":
         """Inline custom check. ``check_fn`` returns bool /
         ``(bool, detail)`` / RequirementStatus."""
@@ -258,6 +263,7 @@ class Requires(list):
                 check_fn,
                 description,
                 axis=axis,
+                cache_key=cache_key,
             )
         )
 

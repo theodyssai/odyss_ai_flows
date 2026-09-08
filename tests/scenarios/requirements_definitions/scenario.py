@@ -288,6 +288,61 @@ def _assert_planner() -> None:
     assert _plan(satisfied, TestMode.LIVE, "ok").run is True
 
 
+def _assert_suite_scoped_requirement_cache() -> None:
+
+    calls = 0
+
+    def shared_check(scenario_dir):
+        nonlocal calls
+        del scenario_dir
+        calls += 1
+        return True
+
+    shared = lambda name: _synthetic(
+        requires().check(
+            "shared external service",
+            shared_check,
+            cache_key="shared-service",
+        ),
+        name,
+    )
+
+    plan = build_suite_plan(
+        [shared("one"), shared("two")],
+        TestMode.AUTO,
+    )
+
+    assert calls == 1
+    assert all(item.run for item in plan.plans)
+
+    build_suite_plan(
+        [shared("three"), shared("four")],
+        TestMode.AUTO,
+    )
+
+    assert calls == 2
+
+    uncached_calls = 0
+
+    def unshared_check(scenario_dir):
+        nonlocal uncached_calls
+        del scenario_dir
+        uncached_calls += 1
+        return True
+
+    unshared = lambda name: _synthetic(
+        requires().check("per-scenario check", unshared_check),
+        name,
+    )
+
+    build_suite_plan(
+        [unshared("one"), unshared("two")],
+        TestMode.AUTO,
+    )
+
+    assert uncached_calls == 2
+
+
 # -------------------------------------------------------------
 # 5. Every plugin scenario declares its hard prerequisites
 # -------------------------------------------------------------
@@ -369,6 +424,8 @@ async def run_scenario():
     _assert_custom_checks()
 
     _assert_planner()
+
+    _assert_suite_scoped_requirement_cache()
 
     plugin_scenarios = _assert_plugin_scenario_requirements()
 

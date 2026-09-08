@@ -62,6 +62,11 @@ class Requirement:
     ) -> RequirementStatus:
         raise NotImplementedError
 
+    def suite_cache_key(self) -> str | None:
+        """Return an explicit suite-planning cache key, if safe to share."""
+
+        return None
+
 CheckResult = Union[bool, tuple[bool, str], RequirementStatus]
 
 CheckFn = Callable[..., CheckResult]

@@ -144,6 +144,11 @@ def build_suite_plan(
         plans=[],
     )
 
+    cached_requirement_statuses: dict[
+        tuple[str, str],
+        RequirementStatus,
+    ] = {}
+
     plugin_missing_seen = False
 
     for scenario in scenarios:
@@ -159,10 +164,24 @@ def build_suite_plan(
 
         plan.req_total += 1
 
-        statuses = [
-            (req, req.check(scenario.path))
-            for req in scenario.requirements
-        ]
+        statuses = []
+
+        for req in scenario.requirements:
+            cache_key = req.suite_cache_key()
+
+            if cache_key is None:
+                status = req.check(scenario.path)
+
+            else:
+                scoped_key = (req.axis, cache_key)
+
+                status = cached_requirement_statuses.get(scoped_key)
+
+                if status is None:
+                    status = req.check(scenario.path)
+                    cached_requirement_statuses[scoped_key] = status
+
+            statuses.append((req, status))
 
         plugin_unmet = [
             (req, st)
