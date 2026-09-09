@@ -1,10 +1,15 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "odyss_ai_flows_tests"
-version = "0.1.0"
+version = "0.1.1"
+authors = [
+    { name = "Aleksander Bydlowski", email = "ai@bydlow.ski" }
+]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 
 dependencies = [

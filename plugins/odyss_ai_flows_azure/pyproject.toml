@@ -1,23 +1,26 @@
 [build-system]
-requires = ["setuptools", "wheel"]
+requires = ["setuptools>=77", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "odyss_ai_flows_azure"
-version = "0.1.0"
+version = "0.1.1"
 authors = [
     { name = "Aleksander Bydlowski", email = "ai@bydlow.ski" }
 ]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 requires-python = ">=3.11"
 
 dependencies = [
-    "openai",
+    "odyss_ai_flows>=0.4.1",
+    "openai>=1",
     "python-dotenv",
     "azure-identity",
     "azure-keyvault-secrets",
     "azure-appconfiguration",
-    "azure-core"
-    ]
+    "azure-core",
+]
 
 [tool.setuptools.packages.find]
 include = ["odyss_ai_flows_azure*"]
