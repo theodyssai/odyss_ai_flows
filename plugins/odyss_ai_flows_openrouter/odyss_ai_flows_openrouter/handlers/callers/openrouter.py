@@ -1,12 +1,3 @@
-﻿# Copyright 2026 ODYSS.AI AG
-# SPDX-License-Identifier: Apache-2.0
-#
-# See the NOTICE file for attribution information.
-#
-# Author:
-# Aleksander Bydłowski
-# abydlowski@theodyss.ai
-# ai@bydlow.ski
 from __future__ import annotations
 
 from typing import Any
@@ -17,10 +8,10 @@ from odyss_ai_flows.core.handlers.llm.components.base import (
     LLMHandlerComponent,
 )
 from odyss_ai_flows.core.utils.logger import logger
-from odyss_ai_flows_azure.handlers.helpers.azure_client import (
-    get_azure_openai_client,
+from odyss_ai_flows_openrouter.handlers.helpers.openrouter_client import (
+    get_openrouter_client,
 )
-from odyss_ai_flows_azure.handlers.helpers.token_buffer import (
+from odyss_ai_flows_openrouter.handlers.helpers.token_buffer import (
     get_node_stream_buffer,
 )
 
@@ -32,7 +23,7 @@ def _unwrap(value: Any) -> Any:
 async def _get_client_and_config() -> tuple[Any, dict]:
     key = await cget(
         "oai_connection_name",
-        default="azure_openai",
+        default="openrouter",
     )
 
     config = await cget(
@@ -42,10 +33,14 @@ async def _get_client_and_config() -> tuple[Any, dict]:
 
     api_key = _unwrap(config.get("api_key"))
 
-    client = get_azure_openai_client(
-        config["endpoint"],
-        config["api_version"],
-        api_key,
+    if not api_key:
+        raise RuntimeError(
+            "OpenRouter connection profile missing 'api_key'"
+        )
+
+    client = get_openrouter_client(
+        api_key=api_key,
+        base_url=config.get("base_url"),
     )
 
     return client, config
@@ -53,9 +48,8 @@ async def _get_client_and_config() -> tuple[Any, dict]:
 
 _CONNECTION_FIELDS = frozenset({
     "api_key",
-    "endpoint",
-    "api_version",
-    "deployment_name",
+    "base_url",
+    "model",
 })
 
 
@@ -103,7 +97,7 @@ def _extract_parsed(
     )
 
 
-class AzureCaller(LLMHandlerComponent):
+class OpenRouterCaller(LLMHandlerComponent):
     async def run(
         self,
         _: Optional[str],
@@ -118,22 +112,20 @@ class AzureCaller(LLMHandlerComponent):
         if model_cls:
             logger.info(
                 f"{self.handler.node.name} "
-                f"- Using AzureCaller "
+                f"- Using OpenRouterCaller "
                 f"(structured mode)"
             )
 
         else:
             logger.info(
                 f"{self.handler.node.name} "
-                f"- Using AzureCaller "
+                f"- Using OpenRouterCaller "
                 f"(text mode)"
             )
 
         client, cfg = await _get_client_and_config()
 
-        deployment = cfg[
-            "deployment_name"
-        ]
+        model = cfg["model"]
 
         messages = self.handler.messages
 
@@ -145,7 +137,7 @@ class AzureCaller(LLMHandlerComponent):
 
             result = (
                 await client.beta.chat.completions.parse(
-                    model=deployment,
+                    model=model,
                     messages=messages,
                     response_format=model_cls,
                     **_request_kwargs(cfg),
@@ -159,10 +151,17 @@ class AzureCaller(LLMHandlerComponent):
             )
 
             if parsed is None:
-                raise RuntimeError(
-                    f"{self.handler.node.name} "
-                    f"- No parsed response returned"
-                )
+                # Some OpenRouter models honor json_schema but return raw
+                # JSON the SDK doesn't auto-parse; validate it ourselves.
+                raw = _extract_text(result)
+
+                if not raw:
+                    raise RuntimeError(
+                        f"{self.handler.node.name} "
+                        f"- No structured response returned"
+                    )
+
+                parsed = model_cls.model_validate_json(raw)
 
             self.handler.structured = parsed
 
@@ -173,7 +172,7 @@ class AzureCaller(LLMHandlerComponent):
         # -----------------------------------------------------
 
         result = await client.chat.completions.create(
-            model=deployment,
+            model=model,
             messages=messages,
             **_request_kwargs(cfg),
         )
@@ -185,7 +184,7 @@ class AzureCaller(LLMHandlerComponent):
         return text
 
 
-class AzureCallerStreaming(
+class OpenRouterCallerStreaming(
     LLMHandlerComponent
 ):
     async def run(
@@ -195,7 +194,7 @@ class AzureCallerStreaming(
 
         logger.info(
             f"{self.handler.node.name} "
-            f"- Using AzureCallerStreaming"
+            f"- Using OpenRouterCallerStreaming"
         )
 
         if getattr(
@@ -211,9 +210,7 @@ class AzureCallerStreaming(
 
         client, cfg = await _get_client_and_config()
 
-        deployment = cfg[
-            "deployment_name"
-        ]
+        model = cfg["model"]
 
         messages = self.handler.messages
 
@@ -228,7 +225,7 @@ class AzureCallerStreaming(
         try:
             stream = (
                 await client.chat.completions.create(
-                    model=deployment,
+                    model=model,
                     messages=messages,
                     stream=True,
                     stream_options={

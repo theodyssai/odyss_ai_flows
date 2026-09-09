@@ -1,3 +1,6 @@
 {
-  "oai_connection_name": "azure_openai"
+  "oai_connection_name": "openrouter",
+  "llm": {
+    "pipeline": "odyss_ai_flows_openrouter.openrouter_default"
+  }
 }

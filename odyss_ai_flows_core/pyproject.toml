@@ -19,6 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 azure = ["odyss_ai_flows_azure"]
+openrouter = ["odyss_ai_flows_openrouter"]
 
 [project.scripts]
 odyss = "odyss_ai_flows.cli:main"

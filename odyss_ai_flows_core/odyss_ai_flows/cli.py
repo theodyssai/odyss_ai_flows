@@ -54,7 +54,10 @@ def _init_project(target: Path) -> int:
         destination.write_bytes(source.read_bytes())
 
     print(f"Initialized Odyss AI Flows project in {target.resolve()}")
-    print("Next: copy .env.example to .env.local, fill the Azure values, then run python main.py")
+    print(
+        "Next: copy .env.example to .env.local, set your "
+        "OpenRouter API key and model, then run python main.py"
+    )
 
     return 0
 

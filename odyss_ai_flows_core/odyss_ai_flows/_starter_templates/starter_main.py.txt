@@ -1,11 +1,43 @@
 from __future__ import annotations
 
 import asyncio
+from pathlib import Path
 
-from odyss_ai_flows import run_flow
+from dotenv import load_dotenv
+
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+ENV_FILE = PROJECT_ROOT / ".env.local"
+
+
+def bootstrap_environment() -> None:
+    """Load local development settings before the framework starts."""
+    if not ENV_FILE.is_file():
+        raise FileNotFoundError(
+            "Missing .env.local. Copy .env.example to .env.local, "
+            "then fill in the required values before running main.py."
+        )
+
+    # SECURITY / SECRET BOOTSTRAP HOOK
+    # --------------------------------
+    # Keeping OPENROUTER_API_KEY in .env.local is convenient for local
+    # development, and .env.local is excluded by the generated .gitignore.
+    # If you do not want the key stored in that file, leave its value empty
+    # and introduce your secret-manager/bootstrap integration here. It should
+    # place OPENROUTER_API_KEY into os.environ for this Python process while
+    # the virtual environment is active. Run that bootstrap before load_dotenv
+    # or replace load_dotenv entirely. With override=False, an injected,
+    # nonempty process value takes precedence over the .env.local placeholder.
+    load_dotenv(ENV_FILE, override=False)
 
 
 async def main() -> None:
+    bootstrap_environment()
+
+    # Import after environment bootstrap so framework and plugin initialization
+    # can safely consume values injected above.
+    from odyss_ai_flows import run_flow
+
     result = await run_flow(
         "flow",
         inputs={

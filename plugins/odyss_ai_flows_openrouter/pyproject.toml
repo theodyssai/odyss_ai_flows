@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "odyss_ai_flows_openrouter"
+version = "0.1.0"
+requires-python = ">=3.11"
+
+dependencies = [
+    "openai",
+    "python-dotenv",
+]
+
+[tool.setuptools.packages.find]
+include = ["odyss_ai_flows_openrouter*"]
+
+[project.entry-points."odyss_ai_flows.llm_components"]
+
+call_openrouter = "odyss_ai_flows_openrouter.handlers.callers.openrouter:OpenRouterCaller"
+
+call_openrouter_streaming = "odyss_ai_flows_openrouter.handlers.callers.openrouter:OpenRouterCallerStreaming"
+
+messages_simple = "odyss_ai_flows_openrouter.handlers.components.messages:SimpleMessageBuilder"
+
+messages_role = "odyss_ai_flows_openrouter.handlers.components.messages:RoleMessageBuilder"
+
+finish_reason_logger = "odyss_ai_flows_openrouter.handlers.components.finish:FinishReasonLogger"
+
+token_counter = "odyss_ai_flows_openrouter.handlers.components.token_counter:TokenCounter"
+
+[project.entry-points."odyss_ai_flows.llm_pipelines"]
+openrouter = "odyss_ai_flows_openrouter.handlers.pipelines:get_pipelines"
