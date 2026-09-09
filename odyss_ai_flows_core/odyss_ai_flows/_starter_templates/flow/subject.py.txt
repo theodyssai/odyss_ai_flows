@@ -1,0 +1,8 @@
+from odyss_ai_flows import *
+
+
+@node
+async def subject() -> dict[str, str]:
+    topic = str(iget("topic", "A practical use of AI")).strip()
+
+    return {"topic": topic}

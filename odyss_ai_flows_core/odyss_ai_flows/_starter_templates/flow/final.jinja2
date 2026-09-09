@@ -1,0 +1,12 @@
+{% set subject = nget("subject") %}
+{% set ideas = nget("ideas") %}
+
+Create a concise decision brief for this topic:
+
+{{ subject["topic"] }}
+
+Use these candidate ideas:
+
+{{ ideas }}
+
+Return a short recommendation followed by three concrete next steps.

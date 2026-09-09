@@ -1,4 +1,4 @@
-﻿[build-system]
+[build-system]
 requires = ["setuptools", "setuptools_scm", "wheel"]
 build-backend = "setuptools.build_meta"
 
@@ -20,6 +20,18 @@ dependencies = [
 [project.optional-dependencies]
 azure = ["odyss_ai_flows_azure"]
 
+[project.scripts]
+odyss = "odyss_ai_flows.cli:main"
+
 [tool.setuptools.packages.find]
 include = ["odyss_ai_flows*"]
 
+[tool.setuptools.package-data]
+"odyss_ai_flows._starter_templates" = [
+    "*.md",
+    "*.txt",
+    "*.json",
+    "flow/*.txt",
+    "flow/*.json",
+    "flow/*.jinja2",
+]

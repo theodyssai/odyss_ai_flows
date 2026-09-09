@@ -1,0 +1,21 @@
+from __future__ import annotations
+
+import asyncio
+
+from odyss_ai_flows import run_flow
+
+
+async def main() -> None:
+    result = await run_flow(
+        "flow",
+        inputs={
+            "topic": "How can a small team use AI without losing operational control?",
+        },
+    )
+
+    print("\nFinal result:\n")
+    print(result["final"])
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
