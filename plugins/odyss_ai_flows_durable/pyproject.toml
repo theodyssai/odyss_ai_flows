@@ -7,7 +7,7 @@ name = "odyss_ai_flows_durable"
 version = "0.1.1"
 authors = [
     { name = "Aleksander Bydlowski", email = "ai@bydlow.ski" },
-    { name = "Daniel Slusarczyk", email = "dslusarczyk@theodyss.ai" },
+    { name = "Daniel Slusarczyk", email = "daniel.slusarczyk.01@gmail.com" },
 ]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
